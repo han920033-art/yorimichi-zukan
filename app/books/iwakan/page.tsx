@@ -41,6 +41,10 @@ const sampleSpecimens: Specimen[] = [
     imageUrl: null,
     collectedText:
       "普通の店に見えるのに、入口だけが妙に低い。入る前に少しだけ身体を小さくする必要がある。",
+    frictionText:
+      "店に入るだけなのに、少し身体を縮める必要があるところ。",
+    normalText: "古い個人店の入口。",
+    personalText: "人を少しだけ謙虚にさせる入口に見えた。",
   },
   {
     id: "sample-2",
@@ -53,6 +57,9 @@ const sampleSpecimens: Specimen[] = [
     imageUrl: null,
     collectedText:
       "休むために置かれているはずなのに、人の流れから少し外れていて、誰も座っていなかった。",
+    frictionText: "休むための場所なのに、休みにくい位置にあるところ。",
+    normalText: "ただのベンチ。",
+    personalText: "使われることを諦めている休憩所に見えた。",
   },
   {
     id: "sample-3",
@@ -65,6 +72,9 @@ const sampleSpecimens: Specimen[] = [
     imageUrl: null,
     collectedText:
       "禁止ではなくお願いの言葉なのに、文章が長すぎて逆に緊張感が出ていた。",
+    frictionText: "丁寧すぎることで、かえって圧を感じるところ。",
+    normalText: "利用者への注意書き。",
+    personalText: "人間関係を壊さないために遠回りしている文章に見えた。",
   },
 ];
 
@@ -172,9 +182,10 @@ export default function IwakanBookPage() {
 
           <div className="space-y-4">
             {specimens.map((specimen) => (
-              <article
+              <Link
                 key={specimen.id}
-                className="rounded-[2rem] bg-white p-4 shadow-sm"
+                href={`/books/iwakan/specimens/${specimen.id}`}
+                className="block rounded-[2rem] bg-white p-4 shadow-sm"
               >
                 <div className="flex h-40 items-center justify-center overflow-hidden rounded-3xl bg-[#ded6c8]">
                   {specimen.imageUrl ? (
@@ -218,7 +229,7 @@ export default function IwakanBookPage() {
                     {"○".repeat(5 - specimen.strength)}
                   </p>
                 </div>
-              </article>
+              </Link>
             ))}
           </div>
         </section>

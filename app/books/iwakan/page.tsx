@@ -228,9 +228,7 @@ export default function IwakanBookPage() {
         <div className="grid grid-cols-4 text-center text-xs text-black/55">
           <Link href="/">ホーム</Link>
           <Link href="/bookshelf">本棚</Link>
-          <Link href="/collect/iwakan" className="font-semibold text-black">
-            採集
-          </Link>
+          <Link href="/collect/iwakan">採集</Link>
           <Link href="/me">私</Link>
         </div>
       </nav>

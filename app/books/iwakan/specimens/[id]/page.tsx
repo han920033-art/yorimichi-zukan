@@ -3,8 +3,7 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-
-const STORAGE_KEY = "yorimichi-iwakan-specimens";
+import { supabase } from "../../../../../lib/supabase";
 
 type Specimen = {
   id: string;
@@ -19,6 +18,21 @@ type Specimen = {
   name: string;
   strength: number;
   imageUrl: string | null;
+};
+
+type DbSpecimen = {
+  id: string;
+  title: string;
+  place: string;
+  collected_date: string;
+  category: string;
+  collected_text: string | null;
+  friction_text: string | null;
+  normal_text: string | null;
+  personal_text: string | null;
+  name: string;
+  strength: number;
+  image_url: string | null;
 };
 
 const sampleSpecimens: Specimen[] = [
@@ -70,28 +84,69 @@ const sampleSpecimens: Specimen[] = [
   },
 ];
 
+function convertDbSpecimen(item: DbSpecimen): Specimen {
+  return {
+    id: item.id,
+    title: item.title,
+    place: item.place,
+    date: item.collected_date,
+    category: item.category,
+    collectedText: item.collected_text || "",
+    frictionText: item.friction_text || "",
+    normalText: item.normal_text || "",
+    personalText: item.personal_text || "",
+    name: item.name,
+    strength: item.strength,
+    imageUrl: item.image_url,
+  };
+}
+
 export default function SpecimenDetailPage() {
   const params = useParams<{ id: string }>();
   const [specimen, setSpecimen] = useState<Specimen | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const storedData = localStorage.getItem(STORAGE_KEY);
+    async function fetchSpecimen() {
+      const id = params.id;
 
-    let savedSpecimens: Specimen[] = [];
+      const sample = sampleSpecimens.find((item) => item.id === id);
 
-    if (storedData) {
-      try {
-        savedSpecimens = JSON.parse(storedData) as Specimen[];
-      } catch {
-        savedSpecimens = [];
+      if (sample) {
+        setSpecimen(sample);
+        setIsLoading(false);
+        return;
       }
+
+      const { data, error } = await supabase
+        .from("specimens")
+        .select("*")
+        .eq("id", id)
+        .single();
+
+      if (error || !data) {
+        console.error(error);
+        setSpecimen(null);
+        setIsLoading(false);
+        return;
+      }
+
+      setSpecimen(convertDbSpecimen(data as DbSpecimen));
+      setIsLoading(false);
     }
 
-    const allSpecimens = [...savedSpecimens, ...sampleSpecimens];
-    const foundSpecimen = allSpecimens.find((item) => item.id === params.id);
-
-    setSpecimen(foundSpecimen || null);
+    fetchSpecimen();
   }, [params.id]);
+
+  if (isLoading) {
+    return (
+      <main className="min-h-screen bg-[#f7f4ee] text-[#1f1f1f]">
+        <div className="mx-auto min-h-screen max-w-[430px] bg-[#f7f4ee] px-5 pb-28 pt-5">
+          <p className="pt-10 text-sm text-black/50">読み込み中...</p>
+        </div>
+      </main>
+    );
+  }
 
   if (!specimen) {
     return (

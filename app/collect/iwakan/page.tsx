@@ -74,10 +74,23 @@ function getTodayText() {
   return `${year}.${month}.${date}`;
 }
 
+function getFileExtension(fileName: string) {
+  const parts = fileName.split(".");
+  const extension = parts[parts.length - 1];
+
+  if (!extension || extension === fileName) {
+    return "jpg";
+  }
+
+  return extension.toLowerCase();
+}
+
 export default function CollectIwakanPage() {
   const router = useRouter();
 
+  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
+
   const [title, setTitle] = useState("");
   const [place, setPlace] = useState("未設定");
   const [category, setCategory] = useState(categories[0]);
@@ -93,8 +106,36 @@ export default function CollectIwakanPage() {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    setSelectedImageFile(file);
+
     const previewUrl = URL.createObjectURL(file);
     setImagePreviewUrl(previewUrl);
+  }
+
+  async function uploadImageIfNeeded() {
+    if (!selectedImageFile) {
+      return null;
+    }
+
+    const extension = getFileExtension(selectedImageFile.name);
+    const filePath = `yuta/iwakan/${Date.now()}-${crypto.randomUUID()}.${extension}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("specimen-images")
+      .upload(filePath, selectedImageFile, {
+        cacheControl: "3600",
+        upsert: false,
+      });
+
+    if (uploadError) {
+      throw uploadError;
+    }
+
+    const { data } = supabase.storage
+      .from("specimen-images")
+      .getPublicUrl(filePath);
+
+    return data.publicUrl;
   }
 
   async function handleSave() {
@@ -102,30 +143,39 @@ export default function CollectIwakanPage() {
 
     setIsSaving(true);
 
-    const { error } = await supabase.from("specimens").insert({
-      owner_slug: "yuta",
-      book_key: "iwakan",
-      title: title || "名前のない標本",
-      place,
-      collected_date: getTodayText(),
-      category,
-      collected_text: collectedText,
-      friction_text: frictionText,
-      normal_text: normalText,
-      personal_text: personalText,
-      name: name || "まだ名前のない違和感",
-      strength,
-      image_url: null,
-    });
+    try {
+      const imageUrl = await uploadImageIfNeeded();
 
-    setIsSaving(false);
+      const { error } = await supabase.from("specimens").insert({
+        owner_slug: "yuta",
+        book_key: "iwakan",
+        title: title || "名前のない標本",
+        place,
+        collected_date: getTodayText(),
+        category,
+        collected_text: collectedText,
+        friction_text: frictionText,
+        normal_text: normalText,
+        personal_text: personalText,
+        name: name || "まだ名前のない違和感",
+        strength,
+        image_url: imageUrl,
+      });
 
-    if (error) {
-      alert(`保存に失敗しました: ${error.message}`);
-      return;
+      if (error) {
+        alert(`保存に失敗しました: ${error.message}`);
+        setIsSaving(false);
+        return;
+      }
+
+      router.push("/collect/iwakan/complete");
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "画像保存に失敗しました";
+
+      alert(`保存に失敗しました: ${message}`);
+      setIsSaving(false);
     }
-
-    router.push("/collect/iwakan/complete");
   }
 
   return (
@@ -166,7 +216,7 @@ export default function CollectIwakanPage() {
           <section className="rounded-[2rem] bg-white p-5 shadow-sm">
             <p className="text-sm font-medium">写真</p>
             <p className="mt-2 text-xs leading-6 text-black/45">
-              今回はプレビューのみです。DBへの写真保存は次の段階で入れます。
+              撮影した写真は Supabase Storage に保存されます。
             </p>
 
             <div className="mt-4 flex h-56 items-center justify-center overflow-hidden rounded-3xl bg-[#ded6c8]">

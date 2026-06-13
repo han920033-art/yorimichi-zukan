@@ -2,8 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-
-const STORAGE_KEY = "yorimichi-iwakan-specimens";
+import { supabase } from "../../../lib/supabase";
 
 const categories = [
   "変な看板",
@@ -27,6 +26,23 @@ type Specimen = {
   name: string;
   strength: number;
   imageUrl: string | null;
+  source: "db" | "sample";
+};
+
+type DbSpecimen = {
+  id: string;
+  title: string;
+  place: string;
+  collected_date: string;
+  category: string;
+  collected_text: string | null;
+  friction_text: string | null;
+  normal_text: string | null;
+  personal_text: string | null;
+  name: string;
+  strength: number;
+  image_url: string | null;
+  created_at: string | null;
 };
 
 const sampleSpecimens: Specimen[] = [
@@ -39,6 +55,7 @@ const sampleSpecimens: Specimen[] = [
     name: "背を低くする入口",
     strength: 4,
     imageUrl: null,
+    source: "sample",
     collectedText:
       "普通の店に見えるのに、入口だけが妙に低い。入る前に少しだけ身体を小さくする必要がある。",
     frictionText:
@@ -55,6 +72,7 @@ const sampleSpecimens: Specimen[] = [
     name: "使われないための休憩所",
     strength: 3,
     imageUrl: null,
+    source: "sample",
     collectedText:
       "休むために置かれているはずなのに、人の流れから少し外れていて、誰も座っていなかった。",
     frictionText: "休むための場所なのに、休みにくい位置にあるところ。",
@@ -70,6 +88,7 @@ const sampleSpecimens: Specimen[] = [
     name: "先回りしすぎる親切",
     strength: 5,
     imageUrl: null,
+    source: "sample",
     collectedText:
       "禁止ではなくお願いの言葉なのに、文章が長すぎて逆に緊張感が出ていた。",
     frictionText: "丁寧すぎることで、かえって圧を感じるところ。",
@@ -78,23 +97,54 @@ const sampleSpecimens: Specimen[] = [
   },
 ];
 
+function convertDbSpecimen(item: DbSpecimen): Specimen {
+  return {
+    id: item.id,
+    title: item.title,
+    place: item.place,
+    date: item.collected_date,
+    category: item.category,
+    collectedText: item.collected_text || "",
+    frictionText: item.friction_text || "",
+    normalText: item.normal_text || "",
+    personalText: item.personal_text || "",
+    name: item.name,
+    strength: item.strength,
+    imageUrl: item.image_url,
+    source: "db",
+  };
+}
+
 export default function IwakanBookPage() {
-  const [savedSpecimens, setSavedSpecimens] = useState<Specimen[]>([]);
+  const [dbSpecimens, setDbSpecimens] = useState<Specimen[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
-    const storedData = localStorage.getItem(STORAGE_KEY);
+    async function fetchSpecimens() {
+      const { data, error } = await supabase
+        .from("specimens")
+        .select("*")
+        .eq("owner_slug", "yuta")
+        .eq("book_key", "iwakan")
+        .order("created_at", { ascending: false });
 
-    if (!storedData) return;
+      if (error) {
+        console.error(error);
+        setErrorMessage(error.message);
+        setIsLoading(false);
+        return;
+      }
 
-    try {
-      const parsedData = JSON.parse(storedData) as Specimen[];
-      setSavedSpecimens(parsedData);
-    } catch {
-      setSavedSpecimens([]);
+      const convertedSpecimens = (data as DbSpecimen[]).map(convertDbSpecimen);
+      setDbSpecimens(convertedSpecimens);
+      setIsLoading(false);
     }
+
+    fetchSpecimens();
   }, []);
 
-  const specimens = [...savedSpecimens, ...sampleSpecimens];
+  const specimens = [...dbSpecimens, ...sampleSpecimens];
   const latestDate = specimens[0]?.date || "-";
 
   return (
@@ -136,14 +186,21 @@ export default function IwakanBookPage() {
             <div className="rounded-2xl bg-white/70 p-4">
               <p className="text-xs text-black/40">採集数</p>
               <p className="mt-1 text-2xl font-semibold">
-                {specimens.length}
+                {isLoading ? "..." : specimens.length}
               </p>
             </div>
 
             <div className="rounded-2xl bg-white/70 p-4">
               <p className="text-xs text-black/40">最終採集</p>
-              <p className="mt-2 font-semibold">{latestDate}</p>
+              <p className="mt-2 font-semibold">{isLoading ? "..." : latestDate}</p>
             </div>
+          </div>
+
+          <div className="mt-4 rounded-2xl bg-white/60 p-4 text-xs leading-6 text-black/50">
+            DB保存分：{isLoading ? "読込中" : `${dbSpecimens.length}件`}
+            {errorMessage && (
+              <p className="mt-2 text-red-500">DB読み込みエラー：{errorMessage}</p>
+            )}
           </div>
 
           <Link
@@ -177,7 +234,9 @@ export default function IwakanBookPage() {
               <h2 className="mt-1 text-2xl font-semibold">標本一覧</h2>
             </div>
 
-            <p className="text-xs text-black/40">{specimens.length}件</p>
+            <p className="text-xs text-black/40">
+              {isLoading ? "読込中" : `${specimens.length}件`}
+            </p>
           </div>
 
           <div className="space-y-4">
@@ -207,9 +266,15 @@ export default function IwakanBookPage() {
                   <p>{specimen.category}</p>
                 </div>
 
-                <h3 className="mt-2 text-xl font-semibold">
-                  {specimen.title}
-                </h3>
+                <div className="mt-3 flex items-center justify-between gap-3">
+                  <h3 className="text-xl font-semibold">{specimen.title}</h3>
+
+                  {specimen.source === "db" && (
+                    <span className="shrink-0 rounded-full bg-black px-3 py-1 text-xs text-white">
+                      DB
+                    </span>
+                  )}
+                </div>
 
                 <p className="mt-3 text-sm leading-7 text-black/60">
                   {specimen.collectedText || "まだ説明はありません。"}

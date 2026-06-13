@@ -18,6 +18,7 @@ type Specimen = {
   name: string;
   strength: number;
   imageUrl: string | null;
+  source: "db" | "sample";
 };
 
 type DbSpecimen = {
@@ -45,6 +46,7 @@ const sampleSpecimens: Specimen[] = [
     name: "背を低くする入口",
     strength: 4,
     imageUrl: null,
+    source: "sample",
     collectedText:
       "普通の店に見えるのに、入口だけが妙に低い。入る前に少しだけ身体を小さくする必要がある。",
     frictionText:
@@ -61,6 +63,7 @@ const sampleSpecimens: Specimen[] = [
     name: "使われないための休憩所",
     strength: 3,
     imageUrl: null,
+    source: "sample",
     collectedText:
       "休むために置かれているはずなのに、人の流れから少し外れていて、誰も座っていなかった。",
     frictionText: "休むための場所なのに、休みにくい位置にあるところ。",
@@ -76,6 +79,7 @@ const sampleSpecimens: Specimen[] = [
     name: "先回りしすぎる親切",
     strength: 5,
     imageUrl: null,
+    source: "sample",
     collectedText:
       "禁止ではなくお願いの言葉なのに、文章が長すぎて逆に緊張感が出ていた。",
     frictionText: "丁寧すぎることで、かえって圧を感じるところ。",
@@ -98,6 +102,7 @@ function convertDbSpecimen(item: DbSpecimen): Specimen {
     name: item.name,
     strength: item.strength,
     imageUrl: item.image_url,
+    source: "db",
   };
 }
 
@@ -105,6 +110,7 @@ export default function SpecimenDetailPage() {
   const params = useParams<{ id: string }>();
   const [specimen, setSpecimen] = useState<Specimen | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     async function fetchSpecimen() {
@@ -126,6 +132,7 @@ export default function SpecimenDetailPage() {
 
       if (error || !data) {
         console.error(error);
+        setErrorMessage(error?.message || "標本が見つかりませんでした");
         setSpecimen(null);
         setIsLoading(false);
         return;
@@ -173,6 +180,12 @@ export default function SpecimenDetailPage() {
             <p className="mt-4 text-sm leading-7 text-black/60">
               保存データが消えたか、URLが違う可能性があります。
             </p>
+
+            {errorMessage && (
+              <p className="mt-4 rounded-2xl bg-[#f7f4ee] p-4 text-xs leading-6 text-red-500">
+                {errorMessage}
+              </p>
+            )}
           </section>
         </div>
       </main>
@@ -218,6 +231,12 @@ export default function SpecimenDetailPage() {
               <p>{specimen.date}</p>
               <span>・</span>
               <p>{specimen.category}</p>
+              {specimen.source === "db" && (
+                <>
+                  <span>・</span>
+                  <p className="font-semibold text-black">DB保存</p>
+                </>
+              )}
             </div>
 
             <h2 className="mt-3 text-3xl font-semibold leading-tight">

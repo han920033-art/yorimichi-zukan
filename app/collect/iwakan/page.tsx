@@ -74,15 +74,69 @@ function getTodayText() {
   return `${year}.${month}.${date}`;
 }
 
-function getFileExtension(fileName: string) {
-  const parts = fileName.split(".");
-  const extension = parts[parts.length - 1];
+async function compressImageFile(file: File): Promise<File> {
+  const maxLength = 1600;
+  const quality = 0.75;
 
-  if (!extension || extension === fileName) {
-    return "jpg";
-  }
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    const objectUrl = URL.createObjectURL(file);
 
-  return extension.toLowerCase();
+    image.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+
+      const originalWidth = image.width;
+      const originalHeight = image.height;
+
+      const scale = Math.min(
+        1,
+        maxLength / Math.max(originalWidth, originalHeight)
+      );
+
+      const width = Math.round(originalWidth * scale);
+      const height = Math.round(originalHeight * scale);
+
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+
+      const context = canvas.getContext("2d");
+
+      if (!context) {
+        reject(new Error("画像の圧縮に失敗しました"));
+        return;
+      }
+
+      context.drawImage(image, 0, 0, width, height);
+
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) {
+            reject(new Error("画像の圧縮に失敗しました"));
+            return;
+          }
+
+          const compressedFileName = file.name.replace(/\.[^/.]+$/, "") + ".jpg";
+
+          const compressedFile = new File([blob], compressedFileName, {
+            type: "image/jpeg",
+            lastModified: Date.now(),
+          });
+
+          resolve(compressedFile);
+        },
+        "image/jpeg",
+        quality
+      );
+    };
+
+    image.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error("画像を読み込めませんでした"));
+    };
+
+    image.src = objectUrl;
+  });
 }
 
 export default function CollectIwakanPage() {
@@ -117,14 +171,16 @@ export default function CollectIwakanPage() {
       return null;
     }
 
-    const extension = getFileExtension(selectedImageFile.name);
-    const filePath = `yuta/iwakan/${Date.now()}-${crypto.randomUUID()}.${extension}`;
+    const compressedFile = await compressImageFile(selectedImageFile);
+
+    const filePath = `yuta/iwakan/${Date.now()}-${crypto.randomUUID()}.jpg`;
 
     const { error: uploadError } = await supabase.storage
       .from("specimen-images")
-      .upload(filePath, selectedImageFile, {
+      .upload(filePath, compressedFile, {
         cacheControl: "3600",
         upsert: false,
+        contentType: "image/jpeg",
       });
 
     if (uploadError) {
@@ -171,7 +227,7 @@ export default function CollectIwakanPage() {
       router.push("/collect/iwakan/complete");
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "画像保存に失敗しました";
+        error instanceof Error ? error.message : "保存に失敗しました";
 
       alert(`保存に失敗しました: ${message}`);
       setIsSaving(false);
@@ -216,7 +272,7 @@ export default function CollectIwakanPage() {
           <section className="rounded-[2rem] bg-white p-5 shadow-sm">
             <p className="text-sm font-medium">写真</p>
             <p className="mt-2 text-xs leading-6 text-black/45">
-              撮影した写真は Supabase Storage に保存されます。
+              写真はアップロード前に自動で圧縮されます。
             </p>
 
             <div className="mt-4 flex h-56 items-center justify-center overflow-hidden rounded-3xl bg-[#ded6c8]">

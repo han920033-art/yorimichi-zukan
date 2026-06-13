@@ -1,23 +1,68 @@
-import Link from "next/link";
+"use client";
 
-const books = [
-  {
-    name: "違和感の図鑑",
-    english: "The Book of Friction",
-    count: 12,
-    lastCollected: "2026.06.13",
-    href: "/books/iwakan",
-  },
-  {
-    name: "余白の図鑑",
-    english: "The Book of Margin",
-    count: 0,
-    lastCollected: "-",
-    href: "#",
-  },
-];
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { supabase } from "../../lib/supabase";
+
+type DbSpecimen = {
+  id: string;
+  collected_date: string;
+  created_at: string | null;
+};
 
 export default function MyPage() {
+  const [dbCount, setDbCount] = useState(0);
+  const [latestDate, setLatestDate] = useState("2026.06.13");
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchMyStats() {
+      const { data, error } = await supabase
+        .from("specimens")
+        .select("id, collected_date, created_at")
+        .eq("owner_slug", "yuta")
+        .eq("book_key", "iwakan")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error(error);
+        setIsLoading(false);
+        return;
+      }
+
+      const specimens = data as DbSpecimen[];
+
+      setDbCount(specimens.length);
+
+      if (specimens[0]?.collected_date) {
+        setLatestDate(specimens[0].collected_date);
+      }
+
+      setIsLoading(false);
+    }
+
+    fetchMyStats();
+  }, []);
+
+  const totalIwakanCount = dbCount + 3;
+
+  const books = [
+    {
+      name: "違和感の図鑑",
+      english: "The Book of Friction",
+      count: totalIwakanCount,
+      lastCollected: latestDate,
+      href: "/books/iwakan",
+    },
+    {
+      name: "余白の図鑑",
+      english: "The Book of Margin",
+      count: 0,
+      lastCollected: "-",
+      href: "#",
+    },
+  ];
+
   return (
     <main className="min-h-screen bg-[#f7f4ee] text-[#1f1f1f]">
       <div className="mx-auto min-h-screen max-w-[430px] bg-[#f7f4ee] px-5 pb-28 pt-5">
@@ -60,7 +105,9 @@ export default function MyPage() {
 
             <div className="rounded-2xl bg-white/70 p-4">
               <p className="text-xs text-black/40">採集</p>
-              <p className="mt-1 text-2xl font-semibold">12</p>
+              <p className="mt-1 text-2xl font-semibold">
+                {isLoading ? "..." : totalIwakanCount}
+              </p>
             </div>
 
             <div className="rounded-2xl bg-white/70 p-4">
@@ -68,6 +115,10 @@ export default function MyPage() {
               <p className="mt-1 text-2xl font-semibold">0</p>
             </div>
           </div>
+
+          <p className="mt-5 rounded-2xl bg-white/60 p-4 text-xs text-black/45">
+            DB保存分：{isLoading ? "読込中" : `${dbCount}件`}
+          </p>
         </section>
 
         <section className="mt-7">
@@ -120,8 +171,14 @@ export default function MyPage() {
                   </div>
 
                   <div className="mt-5 flex items-center justify-between border-t border-black/10 pt-4 text-xs text-black/45">
-                    <p>採集数：{book.count}</p>
-                    <p>最終採集：{book.lastCollected}</p>
+                    <p>
+                      採集数：
+                      {isLoading && isOpen ? "..." : book.count}
+                    </p>
+                    <p>
+                      最終採集：
+                      {isLoading && isOpen ? "..." : book.lastCollected}
+                    </p>
                   </div>
 
                   {isOpen && (
@@ -134,21 +191,22 @@ export default function MyPage() {
             })}
           </div>
         </section>
+
         <section className="mt-8 rounded-[2rem] bg-white p-5 shadow-sm">
-  <p className="text-xs text-black/40">Public View</p>
-  <h2 className="mt-2 text-xl font-semibold">他人から見えるページ</h2>
+          <p className="text-xs text-black/40">Public View</p>
+          <h2 className="mt-2 text-xl font-semibold">他人から見えるページ</h2>
 
-  <p className="mt-4 text-sm leading-7 text-black/60">
-    自分のプロフィールと図鑑が、他人からどのように見えるかを確認できます。
-  </p>
+          <p className="mt-4 text-sm leading-7 text-black/60">
+            自分のプロフィールと図鑑が、他人からどのように見えるかを確認できます。
+          </p>
 
-  <Link
-    href="/user/yuta"
-    className="mt-5 block rounded-full bg-black px-6 py-4 text-center text-sm font-medium text-white"
-  >
-    公開プロフィールを見る
-  </Link>
-</section>
+          <Link
+            href="/user/yuta"
+            className="mt-5 block rounded-full bg-black px-6 py-4 text-center text-sm font-medium text-white"
+          >
+            公開プロフィールを見る
+          </Link>
+        </section>
 
         <section className="mt-8 rounded-[2rem] border border-black/10 p-5">
           <p className="text-xs text-black/40">Zukan Exchange</p>

@@ -1,17 +1,62 @@
-import Link from "next/link";
+"use client";
 
-const publicBooks = [
-  {
-    name: "違和感の図鑑",
-    english: "The Book of Friction",
-    count: 12,
-    lastCollected: "2026.06.13",
-    description: "普通の中にある、小さなひっかかりを集める。",
-    href: "/books/iwakan",
-  },
-];
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { supabase } from "../../../lib/supabase";
+
+type DbSpecimen = {
+  id: string;
+  collected_date: string;
+  created_at: string | null;
+};
 
 export default function PublicUserPage() {
+  const [dbCount, setDbCount] = useState(0);
+  const [latestDate, setLatestDate] = useState("2026.06.13");
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchPublicStats() {
+      const { data, error } = await supabase
+        .from("specimens")
+        .select("id, collected_date, created_at")
+        .eq("owner_slug", "yuta")
+        .eq("book_key", "iwakan")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error(error);
+        setIsLoading(false);
+        return;
+      }
+
+      const specimens = data as DbSpecimen[];
+
+      setDbCount(specimens.length);
+
+      if (specimens[0]?.collected_date) {
+        setLatestDate(specimens[0].collected_date);
+      }
+
+      setIsLoading(false);
+    }
+
+    fetchPublicStats();
+  }, []);
+
+  const totalIwakanCount = dbCount + 3;
+
+  const publicBooks = [
+    {
+      name: "違和感の図鑑",
+      english: "The Book of Friction",
+      count: totalIwakanCount,
+      lastCollected: latestDate,
+      description: "普通の中にある、小さなひっかかりを集める。",
+      href: "/books/iwakan",
+    },
+  ];
+
   return (
     <main className="min-h-screen bg-[#f7f4ee] text-[#1f1f1f]">
       <div className="mx-auto min-h-screen max-w-[430px] bg-[#f7f4ee] px-5 pb-28 pt-5">
@@ -54,7 +99,9 @@ export default function PublicUserPage() {
 
             <div className="rounded-2xl bg-white/70 p-4">
               <p className="text-xs text-black/40">採集</p>
-              <p className="mt-1 text-2xl font-semibold">12</p>
+              <p className="mt-1 text-2xl font-semibold">
+                {isLoading ? "..." : totalIwakanCount}
+              </p>
             </div>
 
             <div className="rounded-2xl bg-white/70 p-4">
@@ -62,6 +109,10 @@ export default function PublicUserPage() {
               <p className="mt-1 text-2xl font-semibold">0</p>
             </div>
           </div>
+
+          <p className="mt-5 rounded-2xl bg-white/60 p-4 text-xs text-black/45">
+            DB保存分：{isLoading ? "読込中" : `${dbCount}件`}
+          </p>
         </section>
 
         <section className="mt-7 rounded-[2rem] bg-white p-5 shadow-sm">
@@ -118,8 +169,8 @@ export default function PublicUserPage() {
                 </div>
 
                 <div className="mt-5 flex items-center justify-between border-t border-black/10 pt-4 text-xs text-black/45">
-                  <p>採集数：{book.count}</p>
-                  <p>最終採集：{book.lastCollected}</p>
+                  <p>採集数：{isLoading ? "..." : book.count}</p>
+                  <p>最終採集：{isLoading ? "..." : book.lastCollected}</p>
                 </div>
 
                 <p className="mt-5 text-sm font-medium underline underline-offset-4">

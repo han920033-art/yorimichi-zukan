@@ -3,8 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-
-const STORAGE_KEY = "yorimichi-iwakan-specimens";
+import { supabase } from "../../../lib/supabase";
 
 const categories = [
   "変な看板",
@@ -66,21 +65,6 @@ const prefectures = [
   "沖縄県",
 ];
 
-type Specimen = {
-  id: string;
-  title: string;
-  place: string;
-  date: string;
-  category: string;
-  collectedText: string;
-  frictionText: string;
-  normalText: string;
-  personalText: string;
-  name: string;
-  strength: number;
-  imageUrl: string | null;
-};
-
 function getTodayText() {
   const today = new Date();
   const year = today.getFullYear();
@@ -93,7 +77,7 @@ function getTodayText() {
 export default function CollectIwakanPage() {
   const router = useRouter();
 
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [place, setPlace] = useState("未設定");
   const [category, setCategory] = useState(categories[0]);
@@ -103,46 +87,43 @@ export default function CollectIwakanPage() {
   const [personalText, setPersonalText] = useState("");
   const [name, setName] = useState("");
   const [strength, setStrength] = useState(3);
+  const [isSaving, setIsSaving] = useState(false);
 
   function handleImageChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-
-    reader.onload = () => {
-      if (typeof reader.result === "string") {
-        setImageUrl(reader.result);
-      }
-    };
-
-    reader.readAsDataURL(file);
+    const previewUrl = URL.createObjectURL(file);
+    setImagePreviewUrl(previewUrl);
   }
 
-  function handleSave() {
-    const newSpecimen: Specimen = {
-      id: String(Date.now()),
+  async function handleSave() {
+    if (isSaving) return;
+
+    setIsSaving(true);
+
+    const { error } = await supabase.from("specimens").insert({
+      owner_slug: "yuta",
+      book_key: "iwakan",
       title: title || "名前のない標本",
       place,
-      date: getTodayText(),
+      collected_date: getTodayText(),
       category,
-      collectedText,
-      frictionText,
-      normalText,
-      personalText,
+      collected_text: collectedText,
+      friction_text: frictionText,
+      normal_text: normalText,
+      personal_text: personalText,
       name: name || "まだ名前のない違和感",
       strength,
-      imageUrl,
-    };
+      image_url: null,
+    });
 
-    const currentData = localStorage.getItem(STORAGE_KEY);
-    const currentSpecimens: Specimen[] = currentData
-      ? JSON.parse(currentData)
-      : [];
+    setIsSaving(false);
 
-    const nextSpecimens = [newSpecimen, ...currentSpecimens];
-
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(nextSpecimens));
+    if (error) {
+      alert(`保存に失敗しました: ${error.message}`);
+      return;
+    }
 
     router.push("/collect/iwakan/complete");
   }
@@ -185,13 +166,13 @@ export default function CollectIwakanPage() {
           <section className="rounded-[2rem] bg-white p-5 shadow-sm">
             <p className="text-sm font-medium">写真</p>
             <p className="mt-2 text-xs leading-6 text-black/45">
-              できれば、その場で撮った写真を使ってください。
+              今回はプレビューのみです。DBへの写真保存は次の段階で入れます。
             </p>
 
             <div className="mt-4 flex h-56 items-center justify-center overflow-hidden rounded-3xl bg-[#ded6c8]">
-              {imageUrl ? (
+              {imagePreviewUrl ? (
                 <img
-                  src={imageUrl}
+                  src={imagePreviewUrl}
                   alt="採集写真のプレビュー"
                   className="h-full w-full object-cover"
                 />
@@ -318,9 +299,10 @@ export default function CollectIwakanPage() {
           <button
             type="button"
             onClick={handleSave}
-            className="w-full rounded-full bg-black px-6 py-4 text-center text-sm font-medium text-white"
+            disabled={isSaving}
+            className="w-full rounded-full bg-black px-6 py-4 text-center text-sm font-medium text-white disabled:opacity-50"
           >
-            標本として保存する
+            {isSaving ? "保存中..." : "標本として保存する"}
           </button>
         </div>
       </div>

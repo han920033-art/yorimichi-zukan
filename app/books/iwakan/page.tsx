@@ -1,4 +1,9 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useState } from "react";
+
+const STORAGE_KEY = "yorimichi-iwakan-specimens";
 
 const categories = [
   "変な看板",
@@ -9,40 +14,79 @@ const categories = [
   "説明できないひっかかり",
 ];
 
-const specimens = [
+type Specimen = {
+  id: string;
+  title: string;
+  place: string;
+  date: string;
+  category: string;
+  collectedText?: string;
+  frictionText?: string;
+  normalText?: string;
+  personalText?: string;
+  name: string;
+  strength: number;
+  imageUrl: string | null;
+};
+
+const sampleSpecimens: Specimen[] = [
   {
+    id: "sample-1",
     title: "入口だけ異様に低い店",
     place: "東京都",
     date: "2026.06.13",
     category: "気になる建物",
     name: "背を低くする入口",
     strength: 4,
-    description:
+    imageUrl: null,
+    collectedText:
       "普通の店に見えるのに、入口だけが妙に低い。入る前に少しだけ身体を小さくする必要がある。",
   },
   {
+    id: "sample-2",
     title: "誰も座らないベンチ",
     place: "神奈川県",
     date: "2026.06.12",
     category: "不自然な道",
     name: "使われないための休憩所",
     strength: 3,
-    description:
+    imageUrl: null,
+    collectedText:
       "休むために置かれているはずなのに、人の流れから少し外れていて、誰も座っていなかった。",
   },
   {
+    id: "sample-3",
     title: "やけに丁寧な注意書き",
     place: "埼玉県",
     date: "2026.06.10",
     category: "変なルール",
     name: "先回りしすぎる親切",
     strength: 5,
-    description:
+    imageUrl: null,
+    collectedText:
       "禁止ではなくお願いの言葉なのに、文章が長すぎて逆に緊張感が出ていた。",
   },
 ];
 
 export default function IwakanBookPage() {
+  const [savedSpecimens, setSavedSpecimens] = useState<Specimen[]>([]);
+
+  useEffect(() => {
+    const storedData = localStorage.getItem(STORAGE_KEY);
+
+    if (!storedData) return;
+
+    try {
+      const parsedData = JSON.parse(storedData) as Specimen[];
+      setSavedSpecimens(parsedData);
+    } catch {
+      setSavedSpecimens([]);
+    }
+  }, []);
+
+  const specimens = [...savedSpecimens, ...sampleSpecimens];
+  const latestDate = specimens[0]?.date || "-";
+
   return (
     <main className="min-h-screen bg-[#f7f4ee] text-[#1f1f1f]">
       <div className="mx-auto min-h-screen max-w-[430px] bg-[#f7f4ee] px-5 pb-28 pt-5">
@@ -81,12 +125,14 @@ export default function IwakanBookPage() {
           <div className="mt-7 grid grid-cols-2 gap-3 text-sm">
             <div className="rounded-2xl bg-white/70 p-4">
               <p className="text-xs text-black/40">採集数</p>
-              <p className="mt-1 text-2xl font-semibold">12</p>
+              <p className="mt-1 text-2xl font-semibold">
+                {specimens.length}
+              </p>
             </div>
 
             <div className="rounded-2xl bg-white/70 p-4">
               <p className="text-xs text-black/40">最終採集</p>
-              <p className="mt-2 font-semibold">2026.06.13</p>
+              <p className="mt-2 font-semibold">{latestDate}</p>
             </div>
           </div>
 
@@ -127,12 +173,22 @@ export default function IwakanBookPage() {
           <div className="space-y-4">
             {specimens.map((specimen) => (
               <article
-                key={specimen.title}
+                key={specimen.id}
                 className="rounded-[2rem] bg-white p-4 shadow-sm"
               >
-                <div className="h-40 rounded-3xl bg-[#ded6c8]" />
+                <div className="flex h-40 items-center justify-center overflow-hidden rounded-3xl bg-[#ded6c8]">
+                  {specimen.imageUrl ? (
+                    <img
+                      src={specimen.imageUrl}
+                      alt={specimen.title}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <p className="text-sm text-black/35">写真なし</p>
+                  )}
+                </div>
 
-                <div className="mt-4 flex items-center gap-2 text-xs text-black/40">
+                <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-black/40">
                   <p>{specimen.place}</p>
                   <span>・</span>
                   <p>{specimen.date}</p>
@@ -145,7 +201,7 @@ export default function IwakanBookPage() {
                 </h3>
 
                 <p className="mt-3 text-sm leading-7 text-black/60">
-                  {specimen.description}
+                  {specimen.collectedText || "まだ説明はありません。"}
                 </p>
 
                 <div className="mt-4 rounded-2xl bg-[#f7f4ee] p-4">
@@ -157,7 +213,10 @@ export default function IwakanBookPage() {
 
                 <div className="mt-4 flex items-center justify-between text-xs text-black/45">
                   <p>違和感の強さ</p>
-                  <p>{"●".repeat(specimen.strength)}{"○".repeat(5 - specimen.strength)}</p>
+                  <p>
+                    {"●".repeat(specimen.strength)}
+                    {"○".repeat(5 - specimen.strength)}
+                  </p>
                 </div>
               </article>
             ))}

@@ -1,7 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
+
+const STORAGE_KEY = "yorimichi-iwakan-specimens";
 
 const categories = [
   "変な看板",
@@ -63,8 +66,42 @@ const prefectures = [
   "沖縄県",
 ];
 
+type Specimen = {
+  id: string;
+  title: string;
+  place: string;
+  date: string;
+  category: string;
+  collectedText: string;
+  frictionText: string;
+  normalText: string;
+  personalText: string;
+  name: string;
+  strength: number;
+  imageUrl: string | null;
+};
+
+function getTodayText() {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const date = String(today.getDate()).padStart(2, "0");
+
+  return `${year}.${month}.${date}`;
+}
+
 export default function CollectIwakanPage() {
+  const router = useRouter();
+
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [title, setTitle] = useState("");
+  const [place, setPlace] = useState("未設定");
+  const [category, setCategory] = useState(categories[0]);
+  const [collectedText, setCollectedText] = useState("");
+  const [frictionText, setFrictionText] = useState("");
+  const [normalText, setNormalText] = useState("");
+  const [personalText, setPersonalText] = useState("");
+  const [name, setName] = useState("");
   const [strength, setStrength] = useState(3);
 
   function handleImageChange(event: React.ChangeEvent<HTMLInputElement>) {
@@ -72,8 +109,43 @@ export default function CollectIwakanPage() {
 
     if (!file) return;
 
-    const url = URL.createObjectURL(file);
-    setImageUrl(url);
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        setImageUrl(reader.result);
+      }
+    };
+
+    reader.readAsDataURL(file);
+  }
+
+  function handleSave() {
+    const newSpecimen: Specimen = {
+      id: String(Date.now()),
+      title: title || "名前のない標本",
+      place,
+      date: getTodayText(),
+      category,
+      collectedText,
+      frictionText,
+      normalText,
+      personalText,
+      name: name || "まだ名前のない違和感",
+      strength,
+      imageUrl,
+    };
+
+    const currentData = localStorage.getItem(STORAGE_KEY);
+    const currentSpecimens: Specimen[] = currentData
+      ? JSON.parse(currentData)
+      : [];
+
+    const nextSpecimens = [newSpecimen, ...currentSpecimens];
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(nextSpecimens));
+
+    router.push("/collect/iwakan/complete");
   }
 
   return (
@@ -81,9 +153,7 @@ export default function CollectIwakanPage() {
       <div className="mx-auto min-h-screen max-w-[430px] bg-[#f7f4ee] px-5 pb-28 pt-5">
         <header className="flex items-center justify-between">
           <div>
-            <p className="text-xs tracking-[0.25em] text-black/40">
-              COLLECT
-            </p>
+            <p className="text-xs tracking-[0.25em] text-black/40">COLLECT</p>
             <h1 className="mt-1 text-xl font-semibold">違和感を採集する</h1>
           </div>
 
@@ -147,6 +217,8 @@ export default function CollectIwakanPage() {
               <p className="text-sm font-medium">タイトル</p>
               <input
                 type="text"
+                value={title}
+                onChange={(event) => setTitle(event.target.value)}
                 placeholder="例：入口だけ異様に低い店"
                 className="mt-3 w-full rounded-2xl bg-[#f7f4ee] px-4 py-4 text-base outline-none"
               />
@@ -156,11 +228,11 @@ export default function CollectIwakanPage() {
           <section className="rounded-[2rem] bg-white p-5 shadow-sm">
             <label className="block">
               <p className="text-sm font-medium">撮影県</p>
-              <p className="mt-2 text-xs leading-6 text-black/45">
-                MVPでは手入力です。GPSで県だけ自動取得する機能は後で入れます。
-              </p>
-
-              <select className="mt-3 w-full rounded-2xl bg-[#f7f4ee] px-4 py-4 text-base outline-none">
+              <select
+                value={place}
+                onChange={(event) => setPlace(event.target.value)}
+                className="mt-3 w-full rounded-2xl bg-[#f7f4ee] px-4 py-4 text-base outline-none"
+              >
                 {prefectures.map((prefecture) => (
                   <option key={prefecture}>{prefecture}</option>
                 ))}
@@ -171,9 +243,13 @@ export default function CollectIwakanPage() {
           <section className="rounded-[2rem] bg-white p-5 shadow-sm">
             <label className="block">
               <p className="text-sm font-medium">分類</p>
-              <select className="mt-3 w-full rounded-2xl bg-[#f7f4ee] px-4 py-4 text-base outline-none">
-                {categories.map((category) => (
-                  <option key={category}>{category}</option>
+              <select
+                value={category}
+                onChange={(event) => setCategory(event.target.value)}
+                className="mt-3 w-full rounded-2xl bg-[#f7f4ee] px-4 py-4 text-base outline-none"
+              >
+                {categories.map((item) => (
+                  <option key={item}>{item}</option>
                 ))}
               </select>
             </label>
@@ -183,6 +259,8 @@ export default function CollectIwakanPage() {
             <label className="block">
               <p className="text-sm font-medium">何を採集した？</p>
               <textarea
+                value={collectedText}
+                onChange={(event) => setCollectedText(event.target.value)}
                 placeholder="例：普通の店に見えるのに、入口だけが妙に低かった。"
                 className="mt-3 min-h-28 w-full rounded-2xl bg-[#f7f4ee] px-4 py-4 text-base leading-7 outline-none"
               />
@@ -193,6 +271,8 @@ export default function CollectIwakanPage() {
             <label className="block">
               <p className="text-sm font-medium">どこに違和感を覚えた？</p>
               <textarea
+                value={frictionText}
+                onChange={(event) => setFrictionText(event.target.value)}
                 placeholder="例：入る前に、自然と身体を小さくしないといけない感じ。"
                 className="mt-3 min-h-28 w-full rounded-2xl bg-[#f7f4ee] px-4 py-4 text-base leading-7 outline-none"
               />
@@ -203,6 +283,8 @@ export default function CollectIwakanPage() {
             <label className="block">
               <p className="text-sm font-medium">普通ならどう見える？</p>
               <textarea
+                value={normalText}
+                onChange={(event) => setNormalText(event.target.value)}
                 placeholder="例：ただの古い個人店。"
                 className="mt-3 min-h-24 w-full rounded-2xl bg-[#f7f4ee] px-4 py-4 text-base leading-7 outline-none"
               />
@@ -213,6 +295,8 @@ export default function CollectIwakanPage() {
             <label className="block">
               <p className="text-sm font-medium">自分にはどう見えた？</p>
               <textarea
+                value={personalText}
+                onChange={(event) => setPersonalText(event.target.value)}
                 placeholder="例：人を少しだけ謙虚にさせる入口に見えた。"
                 className="mt-3 min-h-24 w-full rounded-2xl bg-[#f7f4ee] px-4 py-4 text-base leading-7 outline-none"
               />
@@ -226,6 +310,8 @@ export default function CollectIwakanPage() {
               </p>
               <input
                 type="text"
+                value={name}
+                onChange={(event) => setName(event.target.value)}
                 placeholder="例：背を低くする入口"
                 className="mt-3 w-full rounded-2xl bg-[#f7f4ee] px-4 py-4 text-base outline-none"
               />
@@ -243,35 +329,4 @@ export default function CollectIwakanPage() {
               min="1"
               max="5"
               value={strength}
-              onChange={(event) => setStrength(Number(event.target.value))}
-              className="mt-5 w-full"
-            />
-
-            <div className="mt-3 flex justify-between text-xs text-black/40">
-              <span>少し</span>
-              <span>かなり</span>
-            </div>
-          </section>
-
-          <Link
-  href="/collect/iwakan/complete"
-  className="block w-full rounded-full bg-black px-6 py-4 text-center text-sm font-medium text-white"
->
-  標本として保存する
-</Link>
-        </form>
-      </div>
-
-      <nav className="fixed bottom-0 left-1/2 w-full max-w-[430px] -translate-x-1/2 border-t border-black/10 bg-white/90 px-5 py-3 backdrop-blur">
-        <div className="grid grid-cols-4 text-center text-xs text-black/55">
-          <Link href="/">ホーム</Link>
-          <Link href="/bookshelf">本棚</Link>
-          <Link href="/collect/iwakan" className="font-semibold text-black">
-            採集
-          </Link>
-          <Link href="/me">私</Link>
-        </div>
-      </nav>
-    </main>
-  );
-}
+              onChange={(event) => setStrength(Number(event.target

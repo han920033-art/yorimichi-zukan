@@ -36,6 +36,9 @@ export default function LoginPage() {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/login`,
+      },
     });
 
     setIsLoading(false);
@@ -200,10 +203,10 @@ export default function LoginPage() {
         )}
 
         <section className="mt-7 rounded-[2rem] border border-black/10 p-5">
-          <p className="text-xs text-black/40">Next Step</p>
-          <h2 className="mt-2 text-xl font-semibold">次にやること</h2>
+          <p className="text-xs text-black/40">Redirect</p>
+          <h2 className="mt-2 text-xl font-semibold">確認メール後の戻り先</h2>
           <p className="mt-4 text-sm leading-7 text-black/60">
-            このログインが動いたら、採集ページをログイン必須にし、保存データにユーザーIDを入れます。
+            新規登録後の確認メールを開くと、この環境の /login に戻る設定にしています。
           </p>
         </section>
       </div>

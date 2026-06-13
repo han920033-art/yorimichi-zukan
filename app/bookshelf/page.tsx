@@ -2,33 +2,46 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { supabase } from "../../lib/supabase";
 
-const STORAGE_KEY = "yorimichi-iwakan-specimens";
-
-type StoredSpecimen = {
+type DbSpecimen = {
   id: string;
-  date: string;
+  collected_date: string;
+  created_at: string | null;
 };
 
 export default function BookshelfPage() {
-  const [savedCount, setSavedCount] = useState(0);
+  const [dbCount, setDbCount] = useState(0);
   const [latestDate, setLatestDate] = useState("2026.06.13");
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const storedData = localStorage.getItem(STORAGE_KEY);
+    async function fetchBookStats() {
+      const { data, error } = await supabase
+        .from("specimens")
+        .select("id, collected_date, created_at")
+        .eq("owner_slug", "yuta")
+        .eq("book_key", "iwakan")
+        .order("created_at", { ascending: false });
 
-    if (!storedData) return;
-
-    try {
-      const parsedData = JSON.parse(storedData) as StoredSpecimen[];
-      setSavedCount(parsedData.length);
-
-      if (parsedData[0]?.date) {
-        setLatestDate(parsedData[0].date);
+      if (error) {
+        console.error(error);
+        setIsLoading(false);
+        return;
       }
-    } catch {
-      setSavedCount(0);
+
+      const specimens = data as DbSpecimen[];
+
+      setDbCount(specimens.length);
+
+      if (specimens[0]?.collected_date) {
+        setLatestDate(specimens[0].collected_date);
+      }
+
+      setIsLoading(false);
     }
+
+    fetchBookStats();
   }, []);
 
   const books = [
@@ -36,7 +49,7 @@ export default function BookshelfPage() {
       name: "違和感の図鑑",
       english: "The Book of Friction",
       status: "公開中",
-      count: savedCount + 3,
+      count: dbCount + 3,
       lastCollected: latestDate,
       description: "普通の中にある、小さなひっかかりを集める。",
       href: "/books/iwakan",
@@ -113,6 +126,10 @@ export default function BookshelfPage() {
             ここには、日常で採集した標本が図鑑ごとに並びます。
             まずは「違和感の図鑑」から育てていきます。
           </p>
+
+          <p className="mt-5 rounded-2xl bg-white/60 p-4 text-xs text-black/45">
+            DB保存分：{isLoading ? "読込中" : `${dbCount}件`}
+          </p>
         </section>
 
         <Link
@@ -175,8 +192,8 @@ export default function BookshelfPage() {
                 </div>
 
                 <div className="mt-5 flex items-center justify-between border-t border-black/10 pt-4 text-xs text-black/45">
-                  <p>採集数：{book.count}</p>
-                  <p>最終採集：{book.lastCollected}</p>
+                  <p>採集数：{isLoading && isOpen ? "..." : book.count}</p>
+                  <p>最終採集：{isLoading && isOpen ? "..." : book.lastCollected}</p>
                 </div>
 
                 {isOpen && (

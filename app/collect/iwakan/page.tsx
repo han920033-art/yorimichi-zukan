@@ -76,10 +76,6 @@ export default function CollectIwakanPage() {
     setImageUrl(url);
   }
 
-  function handleTemporarySave() {
-    alert("MVPではまだ保存機能は未実装です。次の手順で、仮の保存完了画面を作ります。");
-  }
-
   return (
     <main className="min-h-screen bg-[#f7f4ee] text-[#1f1f1f]">
       <div className="mx-auto min-h-screen max-w-[430px] bg-[#f7f4ee] px-5 pb-28 pt-5">
@@ -257,13 +253,12 @@ export default function CollectIwakanPage() {
             </div>
           </section>
 
-          <button
-            type="button"
-            onClick={handleTemporarySave}
-            className="w-full rounded-full bg-black px-6 py-4 text-center text-sm font-medium text-white"
-          >
-            標本として保存する
-          </button>
+          <Link
+  href="/collect/iwakan/complete"
+  className="block w-full rounded-full bg-black px-6 py-4 text-center text-sm font-medium text-white"
+>
+  標本として保存する
+</Link>
         </form>
       </div>
 

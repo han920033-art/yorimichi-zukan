@@ -1,3 +1,4 @@
+
 const areas = [
   {
     name: "北海道",
@@ -90,7 +91,7 @@ export default async function AreaPage({ searchParams }: PageProps) {
         </h1>
 
         <p className="mb-4 max-w-3xl text-lg leading-relaxed text-[#333333]">
-          あなたのヨリミチは、
+          あなたの中に宿るヨリミチは、
           <span className="mx-2 font-semibold" style={{ color: typeInfo.color }}>
             {typeInfo.name}
           </span>
@@ -98,7 +99,7 @@ export default async function AreaPage({ searchParams }: PageProps) {
         </p>
 
         <p className="mb-12 max-w-3xl leading-8 text-[#444444]">
-          行きたい地方を選ぶと、あなたのヨリミチに合わせたおすすめの店、
+          行きたい地方を選ぶと、あなたの中に宿るヨリミチに合わせたおすすめの店、
           スポット、過ごし方を案内します。
         </p>
 
@@ -182,11 +183,11 @@ export default async function AreaPage({ searchParams }: PageProps) {
           </a>
 
           <a
-            href="/test"
-            className="px-8 py-4 text-center text-sm tracking-[0.2em] text-[#555555] underline underline-offset-8"
-          >
-            もう一度診断する
-          </a>
+  href="/test"
+  className="px-8 py-4 text-center text-sm tracking-[0.2em] text-[#555555] underline underline-offset-8"
+>
+  もう一度診断する
+</a>
         </div>
       </section>
     </main>

@@ -30,7 +30,7 @@ export default async function ResultReadyPage({ searchParams }: PageProps) {
           </p>
 
           <p>
-            その小さな反応の積み重ねから、あなたのヨリミチが見えてきました。
+            その小さな反応の積み重ねから、あなたの中に宿るヨリミチが見えてきました。
           </p>
         </div>
 

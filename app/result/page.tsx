@@ -180,7 +180,7 @@ export default async function ResultPage({ searchParams }: PageProps) {
       >
         <div className="mx-auto max-w-4xl">
           <p className="mb-4 text-sm tracking-[0.35em] text-white/80">
-            あなたのヨリミチ
+            あなたの中に宿るヨリミチ
           </p>
 
           <h1 className="text-6xl font-semibold tracking-tight sm:text-8xl">
@@ -268,7 +268,7 @@ export default async function ResultPage({ searchParams }: PageProps) {
           </h2>
 
           <p className="mb-8 leading-8 text-[#333333]">
-            あなたのヨリミチに合わせて、地域ごとのおすすめを案内します。
+            あなたの中に宿るヨリミチに合わせて、地域ごとのおすすめを案内します。
           </p>
 
           <a

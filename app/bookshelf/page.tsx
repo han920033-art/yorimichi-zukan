@@ -84,6 +84,16 @@ export default function BookshelfPage() {
             まずは「違和感の図鑑」から育てていきます。
           </p>
         </section>
+        <Link
+  href="/user/yuta"
+  className="mt-4 block rounded-3xl bg-white p-5 shadow-sm"
+>
+  <p className="text-xs text-black/40">Sample User</p>
+  <h3 className="mt-2 text-lg font-semibold">公開プロフィールを見る</h3>
+  <p className="mt-4 text-xs leading-6 text-black/50">
+    図鑑が他人からどう見えるかを確認する
+  </p>
+</Link>
 
         <section className="mt-7 space-y-4">
           {books.map((book) => {

@@ -134,6 +134,21 @@ export default function MyPage() {
             })}
           </div>
         </section>
+        <section className="mt-8 rounded-[2rem] bg-white p-5 shadow-sm">
+  <p className="text-xs text-black/40">Public View</p>
+  <h2 className="mt-2 text-xl font-semibold">他人から見えるページ</h2>
+
+  <p className="mt-4 text-sm leading-7 text-black/60">
+    自分のプロフィールと図鑑が、他人からどのように見えるかを確認できます。
+  </p>
+
+  <Link
+    href="/user/yuta"
+    className="mt-5 block rounded-full bg-black px-6 py-4 text-center text-sm font-medium text-white"
+  >
+    公開プロフィールを見る
+  </Link>
+</section>
 
         <section className="mt-8 rounded-[2rem] border border-black/10 p-5">
           <p className="text-xs text-black/40">Zukan Exchange</p>

@@ -82,6 +82,16 @@ export default function Home() {
             </p>
           </Link>
         </section>
+        <Link
+  href="/user/yuta"
+  className="mt-3 block rounded-3xl bg-white p-5 shadow-sm"
+>
+  <p className="text-xs text-black/40">Public Profile</p>
+  <h3 className="mt-2 text-lg font-semibold">公開プロフィールを見る</h3>
+  <p className="mt-4 text-xs leading-6 text-black/50">
+    他人から見た図鑑ページを確認する
+  </p>
+</Link>
 
         <section className="mt-8">
           <div className="mb-4 flex items-end justify-between">

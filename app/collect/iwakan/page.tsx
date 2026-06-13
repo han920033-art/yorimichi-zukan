@@ -106,7 +106,6 @@ export default function CollectIwakanPage() {
 
   function handleImageChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
-
     if (!file) return;
 
     const reader = new FileReader();
@@ -182,140 +181,122 @@ export default function CollectIwakanPage() {
           </p>
         </section>
 
-        <form className="mt-7 space-y-5">
+        <div className="mt-7 space-y-5">
           <section className="rounded-[2rem] bg-white p-5 shadow-sm">
-            <label className="block">
-              <p className="text-sm font-medium">写真</p>
-              <p className="mt-2 text-xs leading-6 text-black/45">
-                できれば、その場で撮った写真を使ってください。
-              </p>
+            <p className="text-sm font-medium">写真</p>
+            <p className="mt-2 text-xs leading-6 text-black/45">
+              できれば、その場で撮った写真を使ってください。
+            </p>
 
-              <div className="mt-4 flex h-56 items-center justify-center overflow-hidden rounded-3xl bg-[#ded6c8]">
-                {imageUrl ? (
-                  <img
-                    src={imageUrl}
-                    alt="採集写真のプレビュー"
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <p className="text-sm text-black/40">写真を撮る</p>
-                )}
-              </div>
+            <div className="mt-4 flex h-56 items-center justify-center overflow-hidden rounded-3xl bg-[#ded6c8]">
+              {imageUrl ? (
+                <img
+                  src={imageUrl}
+                  alt="採集写真のプレビュー"
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <p className="text-sm text-black/40">写真を撮る</p>
+              )}
+            </div>
 
-              <input
-                type="file"
-                accept="image/*"
-                capture="environment"
-                onChange={handleImageChange}
-                className="mt-4 block w-full text-sm text-black/60 file:mr-4 file:rounded-full file:border-0 file:bg-black file:px-5 file:py-3 file:text-sm file:text-white"
-              />
-            </label>
+            <input
+              type="file"
+              accept="image/*"
+              capture="environment"
+              onChange={handleImageChange}
+              className="mt-4 block w-full text-sm text-black/60 file:mr-4 file:rounded-full file:border-0 file:bg-black file:px-5 file:py-3 file:text-sm file:text-white"
+            />
           </section>
 
           <section className="rounded-[2rem] bg-white p-5 shadow-sm">
-            <label className="block">
-              <p className="text-sm font-medium">タイトル</p>
-              <input
-                type="text"
-                value={title}
-                onChange={(event) => setTitle(event.target.value)}
-                placeholder="例：入口だけ異様に低い店"
-                className="mt-3 w-full rounded-2xl bg-[#f7f4ee] px-4 py-4 text-base outline-none"
-              />
-            </label>
+            <p className="text-sm font-medium">タイトル</p>
+            <input
+              type="text"
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+              placeholder="例：入口だけ異様に低い店"
+              className="mt-3 w-full rounded-2xl bg-[#f7f4ee] px-4 py-4 text-base outline-none"
+            />
           </section>
 
           <section className="rounded-[2rem] bg-white p-5 shadow-sm">
-            <label className="block">
-              <p className="text-sm font-medium">撮影県</p>
-              <select
-                value={place}
-                onChange={(event) => setPlace(event.target.value)}
-                className="mt-3 w-full rounded-2xl bg-[#f7f4ee] px-4 py-4 text-base outline-none"
-              >
-                {prefectures.map((prefecture) => (
-                  <option key={prefecture}>{prefecture}</option>
-                ))}
-              </select>
-            </label>
+            <p className="text-sm font-medium">撮影県</p>
+            <select
+              value={place}
+              onChange={(event) => setPlace(event.target.value)}
+              className="mt-3 w-full rounded-2xl bg-[#f7f4ee] px-4 py-4 text-base outline-none"
+            >
+              {prefectures.map((prefecture) => (
+                <option key={prefecture}>{prefecture}</option>
+              ))}
+            </select>
           </section>
 
           <section className="rounded-[2rem] bg-white p-5 shadow-sm">
-            <label className="block">
-              <p className="text-sm font-medium">分類</p>
-              <select
-                value={category}
-                onChange={(event) => setCategory(event.target.value)}
-                className="mt-3 w-full rounded-2xl bg-[#f7f4ee] px-4 py-4 text-base outline-none"
-              >
-                {categories.map((item) => (
-                  <option key={item}>{item}</option>
-                ))}
-              </select>
-            </label>
+            <p className="text-sm font-medium">分類</p>
+            <select
+              value={category}
+              onChange={(event) => setCategory(event.target.value)}
+              className="mt-3 w-full rounded-2xl bg-[#f7f4ee] px-4 py-4 text-base outline-none"
+            >
+              {categories.map((item) => (
+                <option key={item}>{item}</option>
+              ))}
+            </select>
           </section>
 
           <section className="rounded-[2rem] bg-white p-5 shadow-sm">
-            <label className="block">
-              <p className="text-sm font-medium">何を採集した？</p>
-              <textarea
-                value={collectedText}
-                onChange={(event) => setCollectedText(event.target.value)}
-                placeholder="例：普通の店に見えるのに、入口だけが妙に低かった。"
-                className="mt-3 min-h-28 w-full rounded-2xl bg-[#f7f4ee] px-4 py-4 text-base leading-7 outline-none"
-              />
-            </label>
+            <p className="text-sm font-medium">何を採集した？</p>
+            <textarea
+              value={collectedText}
+              onChange={(event) => setCollectedText(event.target.value)}
+              placeholder="例：普通の店に見えるのに、入口だけが妙に低かった。"
+              className="mt-3 min-h-28 w-full rounded-2xl bg-[#f7f4ee] px-4 py-4 text-base leading-7 outline-none"
+            />
           </section>
 
           <section className="rounded-[2rem] bg-white p-5 shadow-sm">
-            <label className="block">
-              <p className="text-sm font-medium">どこに違和感を覚えた？</p>
-              <textarea
-                value={frictionText}
-                onChange={(event) => setFrictionText(event.target.value)}
-                placeholder="例：入る前に、自然と身体を小さくしないといけない感じ。"
-                className="mt-3 min-h-28 w-full rounded-2xl bg-[#f7f4ee] px-4 py-4 text-base leading-7 outline-none"
-              />
-            </label>
+            <p className="text-sm font-medium">どこに違和感を覚えた？</p>
+            <textarea
+              value={frictionText}
+              onChange={(event) => setFrictionText(event.target.value)}
+              placeholder="例：入る前に、自然と身体を小さくしないといけない感じ。"
+              className="mt-3 min-h-28 w-full rounded-2xl bg-[#f7f4ee] px-4 py-4 text-base leading-7 outline-none"
+            />
           </section>
 
           <section className="rounded-[2rem] bg-white p-5 shadow-sm">
-            <label className="block">
-              <p className="text-sm font-medium">普通ならどう見える？</p>
-              <textarea
-                value={normalText}
-                onChange={(event) => setNormalText(event.target.value)}
-                placeholder="例：ただの古い個人店。"
-                className="mt-3 min-h-24 w-full rounded-2xl bg-[#f7f4ee] px-4 py-4 text-base leading-7 outline-none"
-              />
-            </label>
+            <p className="text-sm font-medium">普通ならどう見える？</p>
+            <textarea
+              value={normalText}
+              onChange={(event) => setNormalText(event.target.value)}
+              placeholder="例：ただの古い個人店。"
+              className="mt-3 min-h-24 w-full rounded-2xl bg-[#f7f4ee] px-4 py-4 text-base leading-7 outline-none"
+            />
           </section>
 
           <section className="rounded-[2rem] bg-white p-5 shadow-sm">
-            <label className="block">
-              <p className="text-sm font-medium">自分にはどう見えた？</p>
-              <textarea
-                value={personalText}
-                onChange={(event) => setPersonalText(event.target.value)}
-                placeholder="例：人を少しだけ謙虚にさせる入口に見えた。"
-                className="mt-3 min-h-24 w-full rounded-2xl bg-[#f7f4ee] px-4 py-4 text-base leading-7 outline-none"
-              />
-            </label>
+            <p className="text-sm font-medium">自分にはどう見えた？</p>
+            <textarea
+              value={personalText}
+              onChange={(event) => setPersonalText(event.target.value)}
+              placeholder="例：人を少しだけ謙虚にさせる入口に見えた。"
+              className="mt-3 min-h-24 w-full rounded-2xl bg-[#f7f4ee] px-4 py-4 text-base leading-7 outline-none"
+            />
           </section>
 
           <section className="rounded-[2rem] bg-white p-5 shadow-sm">
-            <label className="block">
-              <p className="text-sm font-medium">
-                この違和感に名前をつけるなら？
-              </p>
-              <input
-                type="text"
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-                placeholder="例：背を低くする入口"
-                className="mt-3 w-full rounded-2xl bg-[#f7f4ee] px-4 py-4 text-base outline-none"
-              />
-            </label>
+            <p className="text-sm font-medium">
+              この違和感に名前をつけるなら？
+            </p>
+            <input
+              type="text"
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              placeholder="例：背を低くする入口"
+              className="mt-3 w-full rounded-2xl bg-[#f7f4ee] px-4 py-4 text-base outline-none"
+            />
           </section>
 
           <section className="rounded-[2rem] bg-white p-5 shadow-sm">
@@ -329,4 +310,31 @@ export default function CollectIwakanPage() {
               min="1"
               max="5"
               value={strength}
-              onChange={(event) => setStrength(Number(event.target
+              onChange={(event) => setStrength(Number(event.target.value))}
+              className="mt-5 w-full"
+            />
+          </section>
+
+          <button
+            type="button"
+            onClick={handleSave}
+            className="w-full rounded-full bg-black px-6 py-4 text-center text-sm font-medium text-white"
+          >
+            標本として保存する
+          </button>
+        </div>
+      </div>
+
+      <nav className="fixed bottom-0 left-1/2 w-full max-w-[430px] -translate-x-1/2 border-t border-black/10 bg-white/90 px-5 py-3 backdrop-blur">
+        <div className="grid grid-cols-4 text-center text-xs text-black/55">
+          <Link href="/">ホーム</Link>
+          <Link href="/bookshelf">本棚</Link>
+          <Link href="/collect/iwakan" className="font-semibold text-black">
+            採集
+          </Link>
+          <Link href="/me">私</Link>
+        </div>
+      </nav>
+    </main>
+  );
+}

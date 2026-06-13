@@ -51,79 +51,114 @@ const books = [
 export default function BookshelfPage() {
   return (
     <main className="min-h-screen bg-[#f7f4ee] text-[#1f1f1f]">
-      <section className="mx-auto max-w-6xl px-6 py-8 md:px-10">
-        <header className="flex items-center justify-between border-b border-black/10 pb-5">
-          <Link href="/" className="text-lg font-semibold tracking-wide">
-            ヨリミチ図鑑
-          </Link>
+      <div className="mx-auto min-h-screen max-w-[430px] bg-[#f7f4ee] px-5 pb-28 pt-5">
+        <header className="flex items-center justify-between">
+          <div>
+            <p className="text-xs tracking-[0.25em] text-black/40">
+              BOOKSHELF
+            </p>
+            <h1 className="mt-1 text-xl font-semibold">本棚</h1>
+          </div>
 
-          <nav className="flex items-center gap-5 text-sm text-black/60">
-            <Link href="/bookshelf" className="text-black">
-              本棚
-            </Link>
-            <Link href="/me" className="hover:text-black">
-              マイページ
-            </Link>
-          </nav>
+          <Link
+            href="/"
+            className="rounded-full bg-white px-4 py-2 text-sm shadow-sm"
+          >
+            ホーム
+          </Link>
         </header>
 
-        <section className="py-14">
-          <p className="text-sm text-black/45">Bookshelf</p>
-          <h1 className="mt-3 text-5xl font-semibold tracking-tight md:text-7xl">
-            あなたの本棚
-          </h1>
+        <section className="mt-8 rounded-[2rem] bg-[#ebe4d8] p-6">
+          <p className="text-sm text-black/50">あなたの図鑑</p>
 
-          <p className="mt-7 max-w-2xl text-lg leading-9 text-black/60">
-            図鑑は、日常で見つけた人間らしい反応を集める場所です。
-            まずは「違和感の図鑑」から採集を始めます。
+          <h2 className="mt-4 text-4xl font-semibold leading-tight tracking-tight">
+            見つけたものが、
+            <br />
+            少しずつ
+            <br />
+            本になる。
+          </h2>
+
+          <p className="mt-6 text-sm leading-7 text-black/60">
+            ここには、日常で採集した標本が図鑑ごとに並びます。
+            まずは「違和感の図鑑」から育てていきます。
           </p>
         </section>
 
-        <section className="grid gap-5 pb-20 md:grid-cols-2">
-          {books.map((book) => (
-            <Link
-              key={book.name}
-              href={book.href}
-              className="group rounded-[2rem] border border-black/10 bg-white/70 p-6 transition hover:bg-white"
-            >
-              <div className="mb-8 flex items-start justify-between gap-4">
-                <div>
-                  <p className="rounded-full bg-black px-3 py-1 text-xs text-white">
-                    {book.status}
-                  </p>
+        <section className="mt-7 space-y-4">
+          {books.map((book) => {
+            const isOpen = book.status === "公開中";
+
+            return (
+              <Link
+                key={book.name}
+                href={book.href}
+                className={`block rounded-[2rem] bg-white p-5 shadow-sm ${
+                  isOpen ? "" : "pointer-events-none opacity-65"
+                }`}
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p
+                      className={`inline-flex rounded-full px-3 py-1 text-xs ${
+                        isOpen
+                          ? "bg-black text-white"
+                          : "bg-[#f7f4ee] text-black/45"
+                      }`}
+                    >
+                      {book.status}
+                    </p>
+
+                    <h2 className="mt-4 text-2xl font-semibold">
+                      {book.name}
+                    </h2>
+
+                    <p className="mt-1 text-xs italic text-black/35">
+                      {book.english}
+                    </p>
+                  </div>
+
+                  <div className="flex h-16 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#ebe4d8] text-xs text-black/35">
+                    図鑑
+                  </div>
                 </div>
 
-                <p className="text-right text-xs italic text-black/35">
-                  {book.english}
+                <p className="mt-5 text-sm leading-7 text-black/60">
+                  {book.description}
                 </p>
-              </div>
 
-              <div className="mb-6 grid grid-cols-3 gap-3">
-                <div className="h-24 rounded-2xl bg-[#ebe4d8]" />
-                <div className="h-24 rounded-2xl bg-[#ded6c8]" />
-                <div className="h-24 rounded-2xl bg-[#ebe4d8]" />
-              </div>
+                <div className="mt-5 grid grid-cols-3 gap-2">
+                  <div className="h-16 rounded-2xl bg-[#ebe4d8]" />
+                  <div className="h-16 rounded-2xl bg-[#ded6c8]" />
+                  <div className="h-16 rounded-2xl bg-[#ebe4d8]" />
+                </div>
 
-              <h2 className="text-3xl font-semibold">{book.name}</h2>
+                <div className="mt-5 flex items-center justify-between border-t border-black/10 pt-4 text-xs text-black/45">
+                  <p>採集数：{book.count}</p>
+                  <p>最終採集：{book.lastCollected}</p>
+                </div>
 
-              <p className="mt-3 min-h-14 text-sm leading-7 text-black/60">
-                {book.description}
-              </p>
-
-              <div className="mt-8 flex items-center justify-between border-t border-black/10 pt-5 text-sm text-black/50">
-                <p>採集数：{book.count}</p>
-                <p>最終採集：{book.lastCollected}</p>
-              </div>
-
-              {book.status === "公開中" && (
-                <p className="mt-5 text-sm font-medium underline underline-offset-4">
-                  図鑑を開く
-                </p>
-              )}
-            </Link>
-          ))}
+                {isOpen && (
+                  <p className="mt-5 text-sm font-medium underline underline-offset-4">
+                    図鑑を開く
+                  </p>
+                )}
+              </Link>
+            );
+          })}
         </section>
-      </section>
+      </div>
+
+      <nav className="fixed bottom-0 left-1/2 w-full max-w-[430px] -translate-x-1/2 border-t border-black/10 bg-white/90 px-5 py-3 backdrop-blur">
+        <div className="grid grid-cols-4 text-center text-xs text-black/55">
+          <Link href="/">ホーム</Link>
+          <Link href="/bookshelf" className="font-semibold text-black">
+            本棚
+          </Link>
+          <Link href="/collect/iwakan">採集</Link>
+          <Link href="/me">私</Link>
+        </div>
+      </nav>
     </main>
   );
 }

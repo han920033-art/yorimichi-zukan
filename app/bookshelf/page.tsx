@@ -1,54 +1,84 @@
-import Link from "next/link";
+"use client";
 
-const books = [
-  {
-    name: "違和感の図鑑",
-    english: "The Book of Friction",
-    status: "公開中",
-    count: 12,
-    lastCollected: "2026.06.13",
-    description: "普通の中にある、小さなひっかかりを集める。",
-    href: "/books/iwakan",
-  },
-  {
-    name: "余白の図鑑",
-    english: "The Book of Margin",
-    status: "1カ月後に公開予定",
-    count: 0,
-    lastCollected: "-",
-    description: "情報や予定を減らしたときに、自分の感覚が戻る瞬間を集める。",
-    href: "#",
-  },
-  {
-    name: "手触りの図鑑",
-    english: "The Book of Texture",
-    status: "Coming Soon",
-    count: 0,
-    lastCollected: "-",
-    description: "身体で納得したもの、触れてわかったものを集める。",
-    href: "#",
-  },
-  {
-    name: "記憶の図鑑",
-    english: "The Book of Memory",
-    status: "Coming Soon",
-    count: 0,
-    lastCollected: "-",
-    description: "消えていくもの、残したいもの、時間の積み重なりを集める。",
-    href: "#",
-  },
-  {
-    name: "熱量の図鑑",
-    english: "The Book of Devotion",
-    status: "Coming Soon",
-    count: 0,
-    lastCollected: "-",
-    description: "誰かの本気、偏愛、こだわりに触れた記録を集める。",
-    href: "#",
-  },
-];
+import Link from "next/link";
+import { useEffect, useState } from "react";
+
+const STORAGE_KEY = "yorimichi-iwakan-specimens";
+
+type StoredSpecimen = {
+  id: string;
+  date: string;
+};
 
 export default function BookshelfPage() {
+  const [savedCount, setSavedCount] = useState(0);
+  const [latestDate, setLatestDate] = useState("2026.06.13");
+
+  useEffect(() => {
+    const storedData = localStorage.getItem(STORAGE_KEY);
+
+    if (!storedData) return;
+
+    try {
+      const parsedData = JSON.parse(storedData) as StoredSpecimen[];
+      setSavedCount(parsedData.length);
+
+      if (parsedData[0]?.date) {
+        setLatestDate(parsedData[0].date);
+      }
+    } catch {
+      setSavedCount(0);
+    }
+  }, []);
+
+  const books = [
+    {
+      name: "違和感の図鑑",
+      english: "The Book of Friction",
+      status: "公開中",
+      count: savedCount + 3,
+      lastCollected: latestDate,
+      description: "普通の中にある、小さなひっかかりを集める。",
+      href: "/books/iwakan",
+    },
+    {
+      name: "余白の図鑑",
+      english: "The Book of Margin",
+      status: "1カ月後に公開予定",
+      count: 0,
+      lastCollected: "-",
+      description: "情報や予定を減らしたときに、自分の感覚が戻る瞬間を集める。",
+      href: "#",
+    },
+    {
+      name: "手触りの図鑑",
+      english: "The Book of Texture",
+      status: "Coming Soon",
+      count: 0,
+      lastCollected: "-",
+      description: "身体で納得したもの、触れてわかったものを集める。",
+      href: "#",
+    },
+    {
+      name: "記憶の図鑑",
+      english: "The Book of Memory",
+      status: "Coming Soon",
+      count: 0,
+      lastCollected: "-",
+      description: "消えていくもの、残したいもの、時間の積み重なりを集める。",
+      href: "#",
+    },
+    {
+      name: "熱量の図鑑",
+      english: "The Book of Devotion",
+      status: "Coming Soon",
+      count: 0,
+      lastCollected: "-",
+      description: "誰かの本気、偏愛、こだわりに触れた記録を集める。",
+      href: "#",
+    },
+  ];
+
   return (
     <main className="min-h-screen bg-[#f7f4ee] text-[#1f1f1f]">
       <div className="mx-auto min-h-screen max-w-[430px] bg-[#f7f4ee] px-5 pb-28 pt-5">
@@ -84,16 +114,17 @@ export default function BookshelfPage() {
             まずは「違和感の図鑑」から育てていきます。
           </p>
         </section>
+
         <Link
-  href="/user/yuta"
-  className="mt-4 block rounded-3xl bg-white p-5 shadow-sm"
->
-  <p className="text-xs text-black/40">Sample User</p>
-  <h3 className="mt-2 text-lg font-semibold">公開プロフィールを見る</h3>
-  <p className="mt-4 text-xs leading-6 text-black/50">
-    図鑑が他人からどう見えるかを確認する
-  </p>
-</Link>
+          href="/user/yuta"
+          className="mt-4 block rounded-3xl bg-white p-5 shadow-sm"
+        >
+          <p className="text-xs text-black/40">Sample User</p>
+          <h3 className="mt-2 text-lg font-semibold">公開プロフィールを見る</h3>
+          <p className="mt-4 text-xs leading-6 text-black/50">
+            図鑑が他人からどう見えるかを確認する
+          </p>
+        </Link>
 
         <section className="mt-7 space-y-4">
           {books.map((book) => {

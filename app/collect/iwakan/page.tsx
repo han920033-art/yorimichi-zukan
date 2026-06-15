@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "../../../lib/supabase";
 
 const categories = [
@@ -142,6 +142,10 @@ async function compressImageFile(file: File): Promise<File> {
 export default function CollectIwakanPage() {
   const router = useRouter();
 
+  const [userId, setUserId] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
 
@@ -156,6 +160,23 @@ export default function CollectIwakanPage() {
   const [strength, setStrength] = useState(3);
   const [isSaving, setIsSaving] = useState(false);
 
+  useEffect(() => {
+    async function checkAuth() {
+      const { data } = await supabase.auth.getUser();
+
+      if (!data.user) {
+        router.push("/login");
+        return;
+      }
+
+      setUserId(data.user.id);
+      setUserEmail(data.user.email ?? null);
+      setIsCheckingAuth(false);
+    }
+
+    checkAuth();
+  }, [router]);
+
   function handleImageChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -166,14 +187,14 @@ export default function CollectIwakanPage() {
     setImagePreviewUrl(previewUrl);
   }
 
-  async function uploadImageIfNeeded() {
+  async function uploadImageIfNeeded(currentUserId: string) {
     if (!selectedImageFile) {
       return null;
     }
 
     const compressedFile = await compressImageFile(selectedImageFile);
 
-    const filePath = `yuta/iwakan/${Date.now()}-${crypto.randomUUID()}.jpg`;
+    const filePath = `${currentUserId}/iwakan/${Date.now()}-${crypto.randomUUID()}.jpg`;
 
     const { error: uploadError } = await supabase.storage
       .from("specimen-images")
@@ -197,12 +218,19 @@ export default function CollectIwakanPage() {
   async function handleSave() {
     if (isSaving) return;
 
+    if (!userId) {
+      alert("ログインが必要です。");
+      router.push("/login");
+      return;
+    }
+
     setIsSaving(true);
 
     try {
-      const imageUrl = await uploadImageIfNeeded();
+      const imageUrl = await uploadImageIfNeeded(userId);
 
       const { error } = await supabase.from("specimens").insert({
+        user_id: userId,
         owner_slug: "yuta",
         book_key: "iwakan",
         title: title || "名前のない標本",
@@ -234,6 +262,16 @@ export default function CollectIwakanPage() {
     }
   }
 
+  if (isCheckingAuth) {
+    return (
+      <main className="min-h-screen bg-[#f7f4ee] text-[#1f1f1f]">
+        <div className="mx-auto min-h-screen max-w-[430px] bg-[#f7f4ee] px-5 pb-28 pt-5">
+          <p className="pt-10 text-sm text-black/50">ログイン状態を確認中...</p>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-[#f7f4ee] text-[#1f1f1f]">
       <div className="mx-auto min-h-screen max-w-[430px] bg-[#f7f4ee] px-5 pb-28 pt-5">
@@ -247,11 +285,15 @@ export default function CollectIwakanPage() {
             href="/books/iwakan"
             className="rounded-full bg-white px-4 py-2 text-sm shadow-sm"
           >
-            図鑑へ
+            ヨリミチへ
           </Link>
         </header>
 
-        <section className="mt-8 rounded-[2rem] bg-[#ebe4d8] p-6">
+        <section className="mt-5 rounded-2xl bg-white/70 p-4 text-xs leading-6 text-black/45">
+          ログイン中：{userEmail}
+        </section>
+
+        <section className="mt-5 rounded-[2rem] bg-[#ebe4d8] p-6">
           <p className="text-sm text-black/50">今日の問い</p>
 
           <h2 className="mt-4 text-4xl font-semibold leading-tight tracking-tight">
@@ -264,7 +306,7 @@ export default function CollectIwakanPage() {
 
           <p className="mt-6 text-sm leading-7 text-black/60">
             写真のきれいさよりも、何にひっかかったのかを残します。
-            その場で見つけた違和感を、ひとつの標本にします。
+            その場で見つけた違和感を、ひとつのページにします。
           </p>
         </section>
 
@@ -408,19 +450,20 @@ export default function CollectIwakanPage() {
             disabled={isSaving}
             className="w-full rounded-full bg-black px-6 py-4 text-center text-sm font-medium text-white disabled:opacity-50"
           >
-            {isSaving ? "保存中..." : "標本として保存する"}
+            {isSaving ? "保存中..." : "ページとして保存する"}
           </button>
         </div>
       </div>
 
       <nav className="fixed bottom-0 left-1/2 w-full max-w-[430px] -translate-x-1/2 border-t border-black/10 bg-white/90 px-5 py-3 backdrop-blur">
-        <div className="grid grid-cols-4 text-center text-xs text-black/55">
+        <div className="grid grid-cols-5 text-center text-xs text-black/55">
           <Link href="/">ホーム</Link>
           <Link href="/bookshelf">本棚</Link>
           <Link href="/collect/iwakan" className="font-semibold text-black">
             採集
           </Link>
           <Link href="/me">私</Link>
+          <Link href="/login">ログイン</Link>
         </div>
       </nav>
     </main>
